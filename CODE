@@ -11,62 +11,92 @@ recode1 <- function(x,a,b){
 
 
 
-#MQSS
+#   /// MQSS \\\----
+
 library(haven)
-AES2012INDIVIDU <- read_dta("~/Desktop/École/ENS/D3/Deuxième année/MQSS/lil-0820.dta/Stata/AES2012INDIVIDU.dta")
+library(ggplot2)
+AES2012INDIVIDU <- read_dta("~/Desktop/École/ENS/D3/Deuxième année/MQSS/lil-0820.dta (1)/Stata/AES2012INDIVIDU.dta")
 View(AES2012INDIVIDU)
 d<-AES2012INDIVIDU
+str(d)
+dim(d)
 
-#-----Statistiques flash INSEE ----
-  
-# Accès à la formation
-d$age1<-cut(d$age,c(18,24,34,44,54,64), labels = c("18-24 ans", "25-34 ans", "35-44 ans", "45-54 ans","55-64 ans"))
+# Recodage CSP et Départements-----
+which(colnames(d)=="csp")
+d$csp<-as.numeric(AES2012INDIVIDU[[729]])
+cspb<-as.numeric(d$csp)
+cspb<-cut(cspb, c(00,11,21,31,42,52,62, 69), labels=c("Indéterminé","Agriculteurs·trices exploitant·e·s ","Artisan·e·s, commerçant·e·s, et chef·fe·s d'entreprise","Cadres et professions intellectuelles supérieures","Professions intermédiaires","Employé·e·s","Ouvrier·ère·s"))
+cspb[[7565]]
+d$csp[[7565]]
 
+#cspb[cspb==0]<-0
+#cspb[cspb>=11 & cspb<=13]<-1
+#cspb[cspb>=21 & cspb<=23]<-5
+#cspb[cspb>=31 & cspb<=38]<-6
+#cspb[cspb>=42 & cspb<=48]<-4
+##cspb[cspb>=52 & cspb<=56]<-2
+#cspb[cspb>=62 & cspb<=69]<-3
 
-d$fed<-ifelse(d$fed==1,1,0)
-mean(d$fed)
+#names(cspb)<-c("Indéterminé","Agriculteurs·trices exploitant·e·s ","Artisan·e·s, commerçant·e·s, et chef·fe·s d'entreprise","Cadres et professions intellectuelles supérieures","Professions intermédiaires","Employé·e·s","Ouvrier·ère·s")
+cspb
+d$csp[d$csp==00] <- "Indéterminé"
+d$csp[d$csp==11] <- "Agriculteur·trice sur petite exploitation"
+d$csp[d$csp==12] <- "Agriculteur·trice sur moyenne exploitation"
+d$csp[d$csp==13] <- "Agriculteur·trice sur grande exploitation"
+d$csp[d$csp==21] <- "Artisans"
+d$csp[d$csp==22] <- "Commerçants et assimilés"
+d$csp[d$csp==23] <- "Chef·fe·s d'entreprise de 10 salariés ou plus"
+d$csp[d$csp==31] <- "Professions libérales et assimilées"
+d$csp[d$csp==33] <- "Cadres de la fonction publique"
+d$csp[d$csp==34] <- "Professeur·e·s, professions scientifiques"
+d$csp[d$csp==35] <- "Professions de l'information, des arts et des spectacles"
+d$csp[d$csp==37] <- "Cadres administratifs et commerciaux·ciales d'entreprise"
+d$csp[d$csp==38] <- "Ingénieur·e·s et cadres techniques d'entreprise"
+d$csp[d$csp==42] <- "Instituteur·trice·s et assimilé·e·s"
+d$csp[d$csp==43] <- "Professions intermédiaires de la santé et du travail social"
+d$csp[d$csp==44] <- "Clergés, religieux"
+d$csp[d$csp==45] <- "Professions intermédiaires administratives de la fonction publique"
+d$csp[d$csp==46] <- "Professions intermédiaires administratives et commerciales des entreprises"
+d$csp[d$csp==47] <- "Technicien·ne·s"
+d$csp[d$csp==48] <- "Contremaîtres, agents de maîtrise"
+d$csp[d$csp==52] <- "Employé·e·s civil·e·s et agents de service de la fonction publique"
+d$csp[d$csp==53] <- "Policier·ière·s et militaires"
+d$csp[d$csp==54] <- "Employé·e·s administratif·ve·s d'entreprise"
+d$csp[d$csp==55] <- "Employé·e·s de commerce"
+d$csp[d$csp==56] <- "Personnels des services directs aux particuliers"
+d$csp[d$csp==62] <- "Ouvrier·ère·s qualifié·e·s de type industriel"
+d$csp[d$csp==63] <- "Ouvrier·ère·s qualifié·e·s de type artisanal"
+d$csp[d$csp==64] <- "Chauffeur·euse·s"
+d$csp[d$csp==65] <- "Ouvrier·ère·s qualifié·e·s de la manutention, du magasinage et du transport"
+d$csp[d$csp==67] <- "Ouvrier·ère·s non qualifié·e·s de type industriel"
+d$csp[d$csp==68] <- "Ouvrier·ère·s non qualifié·e·s de type artisanal"
+d$csp[d$csp==69] <- "Ouvrier·ère·s agricoles"
+d$csp[is.na(d$csp)] <- "Sans objet"
 
-formation1<-ifelse(d$fed==1 | d$nfeguidedjt==1 | d$nfeloisir==1 | d$nfecourse==1 | d$nfeworkshop==1 |d$nfelesson==1,1,0)
-mean(formation1)
-prop.table(table(d$age1,formation1))
+csp1 <- d$csp
+csp1[csp1=="Agriculteur·trice sur petite exploitation"|csp1=="Agriculteur·trice sur moyenne exploitation" | csp1=="Agriculteur·trice sur grande exploitation"]<-"Agriculteurs·trices exploitant·e·s "
+csp1[csp1=="Artisans"|csp1=="Commerçants et assimilés"|csp1=="Chef·fe·s d'entreprise de 10 salariés ou plus"]<-"Artisan·e·s, commerçant·e·s, et chef·fe·s d'entreprise"
+csp1[csp1=='Professions libérales et assimilées'|csp1=="Cadres de la fonction publique" | csp1=="Professeur·e·s, professions scientifiques"|csp1=="Professions de l'information, des arts et des spectacles"| csp1=="Cadres administratifs et commerciaux·ciales d'entreprise"|csp1=="Ingénieur·e·s et cadres techniques d'entreprise"]<-"Cadres et professions intellectuelles supérieures"
+csp1[csp1=="Instituteur·trice·s et assimilé·e·s"|csp1=="Professions intermédiaires de la santé et du travail social"|csp1=="Clergés, religieux"|csp1=="Professions intermédiaires administratives de la fonction publique" |csp1=="Professions intermédiaires administratives et commerciales des entreprises"|csp1=="Technicien·ne·s"|csp1=="Contremaîtres, agents de maîtrise"]<-"Professions intermédiaires"
+csp1[csp1=="Employé·e·s civil·e·s et agents de service de la fonction publique"|csp1=="Policier·ière·s et militaires"|csp1=="Employé·e·s administratif·ve·s d'entreprise"|csp1=="Employé·e·s de commerce"|csp1=="Personnels des services directs aux particuliers"]<- "Employé·e·s"
+csp1[csp1=="Ouvrier·ère·s qualifié·e·s de type artisanal"|csp1=="Ouvrier·ère·s qualifié·e·s de type industriel"|csp1=="Chauffeur·euse·s"|csp1=="Ouvrier·ère·s qualifié·e·s de la manutention, du magasinage et du transport"|csp1=="Ouvrier·ère·s non qualifié·e·s de type industriel"|csp1=="Ouvrier·ère·s non qualifié·e·s de type artisanal"|csp1=="Ouvrier·ère·s agricoles"]<-"Ouvrier·ère·s"
+csp1
 
+situa1<-d$situa
+situa1[situa1==1]<-"En emploi"
+situa1[situa1==2]<-"Apprenti·e sous contrat ou en stage rémunéré"
+situa1[situa1==3]<-"Étudiant·e, élève en formation ou en stage rémunéré"
+situa1[situa1==4]<-"Chômeur·euse (inscrit·e ou non à Pôle Emploi)"
+situa1[situa1==5]<-"Retraité·e ou retiré·e des affaires, en préretraite"
+situa1[situa1==6]<-"Femme ou homme au foyer"
+situa1[situa1==7]<-"Inactif·ve pour cause d'invalidité"
+situa1[situa1==8]<-"Autre situation d'inactivité"
 
-#### Statistiques de base
+situa2<-situa1
+situa2[situa1=="En emploi"|situa1=="Apprenti·e sous contrat ou en stage rémunéré"|situa1=="Étudiant·e, élève en formation ou en stage rémunéré"]<-"En Emploi"
+situa2[situa1=="Chômeur·euse (inscrit·e ou non à Pôle Emploi)"]<-"Chômeur·euse"
+situa2[situa1=="Retraité·e ou retiré·e des affaires, en préretraite"|situa1=="Femme ou homme au foyer"|situa1=="Inactif·ve pour cause d'invalidité"|situa1=="Autre situation d'inactivité"]<-"Inactif·ve"
 
-d$sex<- ifelse(d$sex==2,1,0)
-d$sex[d$sex==1]<-"Femme"
-d$sex[d$sex==0]<-"Homme"
-
-mean(d$age)
-min(d$age)
-max(d$age)
-quantile(d$age)
-
-
-#------ Droit à la formation-----
-  ### Droit individuel à la formation
-d$dif<-recode1(d$dif,-2,2)
-AES2012INDIVIDU$dif
-prop.table(table(d$dif))
-
-d$cif<-recode1(d$cif,-2,2)
-prop.table(table(d$cif))
-prop.table(table(d$cifuse,d$sex))
-d$cif[d$cif=="Oui"]<-1
-d$cif[d$cif=="Non"]<-0
-d$cif<-as.integer(d$cif)
-
-d$cifuse <- recode1(d$cifuse,-2,2)
-prop.table(table(d$cifuse))
-prop.table(table(d$cifuse,d$sex))
-
-d$bc<-recode1(d$bc)
-prop.table(table(d$bc))
-prop.table(table(d$bc,d$sex))
-
-  ### Régression de la connaissance
-logit <- glm(d$cif ~ d$age + d$locsizefirm + d$csp)
-###-----Recodage -----
 d$dep[d$dep==01]<-"Ain"
 d$dep[d$dep==02]<-"Aisne"
 d$dep[d$dep==03]<-"Allier"
@@ -163,33 +193,6 @@ d$dep[d$dep==92]<-"Hauts-de-Seine"
 d$dep[d$dep==93]<-"Seine-Saint-Denis"
 d$dep[d$dep==94]<-"Val-de-Marne"
 d$dep[d$dep==95]<-"Val d'Oise"
-    
-    
-d$locsizefirm[d$locsizefirm==-2]<-NA
-d$locsizefirm<-as.integer(d$locsizefirm)
-          
-          
-          
-          
-#### Formation pas finie
-unique(d$difempaut)
-
-which(colnames(d)=='difftype_01')
-which(colnames(d)=='difftype_10')
-
-for (i in seq(240,250)){
-  d[[i]]<-recode1(d[[i]],-2,2)
-}
-for (i in seq(240, 250)){  print(prop.table(table(d[[i]],d$csp)))
-}
-
-
-
-
-#-----Résultats de la formation-----
-source('/Users/simonjean/Desktop/École/ENS/D3/Deuxième année/MQSS/MQSS_fonctions.R')
-
-#----- Recodage ------
 
 which(colnames(d)=="fedoutcome_1")
 which(colnames(d)=='fedoutcome_8')
@@ -201,47 +204,401 @@ for(i in seq(74,81)){
   d[[i]]<-recode1(d[[i]],-2,2)
 }
 
-d$csp[d$csp==00] <- "Indéterminé"
-d$csp[d$csp==11] <- "Agriculteur sur petite exploitation"
-d$csp[d$csp==12] <- "Agriculteur sur moyenne exploitation"
-d$csp[d$csp==13] <- "Agriculteur sur grande exploitation"
-d$csp[d$csp==21] <- "Artisans"
-d$csp[d$csp==22] <- "Commerçants et assimilés"
-d$csp[d$csp==23] <- "Chef(fe)s d'entreprise de 10 salariés ou plus"
-d$csp[d$csp==31] <- "Professions libérales et assmilées"
-d$csp[d$csp==33] <- "Cadres de la fonction publique"
-d$csp[d$csp==34] <- "Professeurs, professions scientifiques"
-d$csp[d$csp==35] <- "Professions de l'information, des arts et des spectacles"
-d$csp[d$csp==37] <- "Cadres administratifs et commerciaux d'entreprise"
-d$csp[d$csp==38] <- "Ingénieurs et cadres techniques d'entreprise"
-d$csp[d$csp==42] <- "Instituteurs et assimilés"
-d$csp[d$csp==43] <- "Professions intermédiaires de la santé et du travail social"
-d$csp[d$csp==44] <- "Clergés, religieux"
-d$csp[d$csp==45] <- "Professions intermédiaires administratives de la fonction publique"
-d$csp[d$csp==46] <- "Professions intermédiaires administratives et commerciales des entreprises"
-d$csp[d$csp==47] <- "Techniciens"
-d$csp[d$csp==48] <- "Contremaîtres, agents de maîtrise"
-d$csp[d$csp==52] <- "Employés civils et agents de service de la fonction publique"
-d$csp[d$csp==53] <- "Policiers et militaires"
-d$csp[d$csp==54] <- "Employés administratifs d'entreprise"
-d$csp[d$csp==55] <- "Employés de commerce"
-d$csp[d$csp==56] <- "Personnels des services directs aux particuliers"
-d$csp[d$csp==62] <- "Ouvriers qualifiés de type industriel"
-d$csp[d$csp==63] <- "Ouvriers qualifiés de type artisanal"
-d$csp[d$csp==64] <- "Chauffeurs"
-d$csp[d$csp==65] <- "Ouvriers qualifiés de la manutention, du magasinage et du transport"
-d$csp[d$csp==67] <- "Ouvriers non qualifiés de type industriel"
-d$csp[d$csp==68] <- "Ouvriers non qualifiés de type artisanal"
-d$csp[d$csp==69] <- "Ouvriers agricoles"
-d$csp[is.na(d$csp)] <- "Sans objet"
+d$age1<-cut(d$age,c(18,24,34,44,54,64), labels = c("18-24 ans", "25-34 ans", "35-44 ans", "45-54 ans","55-64 ans"), col=red)
 
-csp1 <- d$csp
-csp1[csp1=="Agriculteur sur petite exploitation"|csp1=="Agriculteur sur moyenne exploitation" | csp1=="Agriculteur sur grande exploitation"]<-"Agriculteurs·trices exploitant·e·s "
-csp1[]
-#-----Formation effectuée----
-for(i in seq(74,81)){
+d$jobstat[d$jobstat==-2]<-"Sans objet"
+d$jobstat[d$jobstat==11]<-"Employeur·euse employant un·e ou plusieurs salarié·e·s"
+d$jobstat[d$jobstat==21]<- "Salarié·e en CDI"
+d$jobstat[d$jobstat==12]<-"Indépendant·e sans salarié·e·s"
+d$jobstat[d$jobstat==22]<-"Salarié·e en CDD"
+d$jobstat[d$jobstat==30]<-"Aide familial"
 
-  print(addmargins(prop.table((table(d[[i]], d$sex)))))
+d$dip<-as.numeric(d$dip)
+dip<-cut(d$dip, c(0, 10, 12, 21, 22, 30, 31, 32, 33, 41, 42, 43, 44, 50, 60, 70, 71), labels=c("Doctorat, Master 2, DEA, DESS", "École niveau licence et au delà", "Licence",
+                                                                                               "Master 1, Maîtrise", "DEUG", "DUT, BTS, DEUST et équivalents", "Autre diplôme professionnel niveau  bac +2", "Diplôme paramédical et social niveau bac +2", "Bac général", "Bac techno",
+                                                                                               "Bac pro", "Brevet de technicien, brevet professionnel", "CAP, BEP et équivalents", "BEPC, DNB, brevet des collèges", "Certificat d'études primaires", "Aucun diplôme"))
+
+# Statistiques flash INSEE ----
+
+d$sex<- ifelse(d$sex==2,1,0)
+d$sex[d$sex==1]<-"Femme"
+d$sex[d$sex==0]<-"Homme"
+
+mean(d$age)
+min(d$age)
+max(d$age)
+quantile(d$age)
+hist(d$age)
+
+table(d$age1) 
+plot(table(d$age1), main="Répartition des classes d'âges", type="h")
+
+table(d$csp)
+median(d$csp)
+plot(table(d$csp))
+table(csp1)
+median(csp1)
+prop.table(table(csp1))
+
+
+# Accès à la formation #
+    # Construction des variables d'accès à la formation ####
+        
+        #- Formation formelle
+          d$fed<-as.numeric(d$fed)
+          which(is.na(d$fed))
+          str(d$fed)
+          mean(d$fed, na.rm=TRUE)
+        #- Formation informelle : 
+        
+          d$nfecourse
+          d$nfelesson
+          d$nfeguidedjt
+          d$nfeloisir
+            controle1<-ifelse(d$nfecourse==1|d$nfelesson==1|d$nfeguidedjt==1|d$nfeloisir==1, 1, 0)
+            which(d$nfeloisir==1&d$nfenum==0)
+          d$nfenum
+          d$nfepurp1
+          
+              # Découpage de la formation professionelle non diplômante: 
+       
+          
+        #- Apprentissage informel : 
+          d$inf
+          d$infor
+
+        # Controverse : je n'arrive pas à retrouver le taux de formation de l'INSEE  
+d$fed<-ifelse(d$fed==1, 1, 0)
+mean(d$fed)
+
+d$nfedur1<-as.numeric(d$nfedur1)
+formation_totale<-ifelse(d$fed==1|d$nfeact01_type>0|d$inf<3, 1, 0)
+mean(formation_totale)
+
+formation_totale2<-ifelse(d$fed==1|d$nfepurp4_10==1|d$inf<3, 1, 0)
+mean(formation_totale2)
+
+formation_totale3<-ifelse(d$fed==1|d$nfenum>0|d$nfedur1>0, 1, 0)
+formation_totale3
+mean(formation_totale3, na.rm=TRUE)
+
+
+    # Tests pour retrouver statistiques de l'INSEE-----
+
+FED<-ifelse(d$fed==1, 1, 0)
+FINET<-as.numeric(ifelse(d$fifinan==2012, 1, 0))
+FINET
+mean(FINET, na.rm=TRUE)
+which(FINET==1&FED==0)
+mean(FED)
+table(FED, d$age1)
+
+NFED<-ifelse(d$nfeloisir==1|d$nfeguidedjt==1|d$nfelesson==1|d$nfeworkshop==1|d$nbloisirg>0|d$nbloisirp,1,0)
+TOT<-ifelse(FED==1|NFED==1|FINET==1,1,0) #|d$nfenum>0| d$fednb>0
+mean(TOT, na.rm=TRUE)
+TOT[is.na(TOT)]<-0
+TOT
+
+d$fednb
+TOT2<-ifelse(d$nfenum>0|d$fednb>0,1,0)
+TOT2[is.na(TOT2)]<-0
+TOT2
+mean(TOT2, na.rm=TRUE)
+mean
+TOT3<-as.numeric(ifelse(d$fednb>0|d$infpurp1==1|d$nfepurp1==1,1,0))
+TOT3[is.na(TOT3)]<-0
+mean(TOT3, na.rm=TRUE)
+
+TOT4<-ifelse(d$fed==1|d$nfeloisir==1|d$nfeworkshop==1|d$nfelesson==1|d$nfeguidedjt==1|d$nfepurp1==1|d$infpurp1==1,1,0)
+TOT4[is.na(TOT4)]<-0
+mean(TOT4)
+
+
+TOT5 <- ifelse(d$fed==1|d$fifinan==2012|d$nfenum>0,1,0)
+mean(TOT5, na.rm = TRUE)
+
+which(d$nfenum==0&d$nfeloisir==0)
+which(d$fininan==2012&d$fednb==0)
+TOT6<- ifelse(d$fednb>0|d$nfenum>0,1,0)
+TOT6[is.na(TOT6)]<-0
+mean(TOT6)
+barplot(prop.table(table(d$age1, TOT6),1))
+prop.table(table(d$sex, TOT6), 1)
+prop.table(table(csp1, TOT6), 1)
+
+
+# Taux d'accès à la formation pour raisons professionelles ------
+fed_pro <-ifelse(d$fedreason_01==1|d$fedreason_02==1 |d$fedreason_03==1|d$fedreason_04==1|d$fedreason_05==1,1,0)
+which(d$fedraison1>0&d$fed==2)
+nfe_pro <-ifelse(d$nfereason1_01==1|d$nfereason1_02==1|d$nfereason1_03==1|d$nfereason1_04==1|d$nfereason1_05==1,1,0)
+nfe_pro <-ifelse(d$nfepurp1==1|d$nfepurp2==1|d$nfepurp3==1, 1,0) #Go with this one
+
+
+tot_pro<- ifelse(fed_pro==1|nfe_pro==1,1,0)
+mean(tot_pro)
+
+prop.table(table(d$age1, tot_pro), 1)
+prop.table(table(d$sex, tot_pro), 1)
+prop.table(table(d$age1, nfe_pro), 1)
+prop.table(table(d$sex, nfe_pro), 1)
+
+#Tableau 2
+prop.table(table(csp1, tot_pro), 1)
+prop.table(table(d$sex, tot_pro), 1)
+
+prop.table(table(d$jobstat, tot_pro),1)
+prop.table(table(d$zus, tot_pro), 1)
+
+#Tableau 3
+which(colnames(d)=="nfepaidaut1_1")
+which(colnames(d)=="nfepaidaut1_5")
+
+for (i in seq(531,535)){
+  print(prop.table(table(d[[i]], d$nfenum>0), 1))
+  print(i)
+  }
+
+prop.table(table(nfe_pro, d$nfepurp1==1))
+
+
+  # Déclinaison de l'accès à la formation ####
+        # Age et formation
+prop.table(table(formation_totale, d$age1), 1)
+          
+  # Lecture : parmi les individus n'ayant pas effectué de formation, 37,9% ont plus de 55 ans
+prop.table(table(formation_totale,d$age1), 2)
+          # Lecture : parmi les 55-64 ans, 57,8% n'ont pas effectué de formation. 
+
+        # Sexe et formation
+prop.table(table(formation_totale, d$sex), 1)
+proptable(formation_totale, d$sex)
+
+        # Situation dans l'emploi et formation
+proptable(formation_totale, situa2)
+
+        # CSP et formation
+proptable(formation_totale, d$csp)
+proptable(formation_totale, csp1)
+
+        # Zone Urbaine Sensible et formation
+proptable(formation_totale, d$zus)
+
+        # Statut d'emploi (salarié, non salarié) et formation
+proptable(formation_totale,situa2)
+        # Formation initiale et formation 
+unique(d$fitypdipaut)
+d$dip<-as.numeric(d$dip)
+proptable(formation_totale, dip)
+proptable(fed, dip)
+
+        #Durée des formations
+prop.table(table(d$fedduree,csp1))
+mean(d$fedduree, na.rm=TRUE) # Durée en heures
+mean(d$nfedur1, na.rm=TRUE)
+mean(d$nfedur2, na.rm=TRUE)
+
+
+
+# Droit à la formation-----
+  ### Droit individuel à la formation
+d$dif<-recode1(d$dif,-2,2)
+d$dif<-AES2012INDIVIDU$dif
+prop.table(table(d$dif))
+table(d$difdoc)
+
+d$difuse<-recode1(d$difuse, -2,2)
+table(d$difuse)
+table(d$difuse, d$fed)
+
+d$cif<-recode1(d$cif,-2,2)
+prop.table(table(d$cif))
+
+
+d$cifuse <- recode1(d$cifuse,-2,2)
+prop.table(table(d$cifuse))
+proptable(d$cifuse,d$sex)
+proptable(d$cifuse, d$age1)
+
+d$bc<-recode1(d$bc)
+prop.table(table(d$bc))
+prop.table(table(d$bc,d$sex))
+
+d$seekinfo<-ifelse(d$seekinfo==1, 1,0)
+mean(d$seekinfo & d$fed==2)
+mean(d$seekinfo & d$nfenum>0)
+
+d$seekfound<-ifelse(d$seekfound==1, 1, 0)
+mean(d$seekfound & d$fed==1)
+prop.table(table(d$sex, d$seekfound), 1)
+
+#Moyen de s'informer
+for(i in seq(which(colnames(d)=="seeksource_1"), which(colnames(d)=="seeksource_7"))){
+  d[[i]]<-ifelse(d[[i]]==1, 1,0)
+  print(mean(d[[i]]))
 }
-colnames(d[[74]])
+seeksource_tot<-ifelse(d$seeksource_1==1|d$seeksource_2==1|d$seeksource_3==1|d$seeksource_4==1|d$seeksource_5==1|d$seeksource_6==1|d$seeksource_7==1, 1, 0)
+mean(seeksource_tot)
+table(d$seeksource_1, d$seeksource_2)
+
+
+# Régressions ####
+d$salarieta<-as.numeric(d$salarieta)
+nbsalarie<-cut(d$salarieta,c(0,1,2,3,4,5,7), labels=c("1 à 10 salarié·e·s", "11 à 19 salarié·e·s", "20 à 49 salarié·e·s", "50 à 249 salarié·e·s", "250 à 50 salarié·e·s", "Plus de 10 mais NSP"))
+nbsalarie    
+d$salarieta
+#LPM de la formation : attention, la variable cspb est un ordre des CSP agrégées. Cela pose problème, parce que les résultats sont faussés
+reg1<-lm(d$fed ~ d$zus + d$sex + cspb + nbsalarie + d$age + dip)
+library(lmtest)
+library(sandwich)
+coeftest(reg1, vcov=vcovHC(reg1, type="HC1"))
+summary(reg1)
+# Maybe an other vector, more aggregated for dip. Could be fun to regress dip on education levels of the parents. 
+
+install.packages("stargazer")
+library(stargazer)
+stargazer(reg1)    
+
+      
+# Pourquoi faire la formation ? ####
+
+#   Qui est à l'initiative des formations: 
+    # - Formelles 
+
+d$fedorig<-cut(as.numeric(d$fedorig), c(0,1,2,3,4,5,6), labels=c("Sans objet", "Employeur·euse", "Service public de l'emploi", "Autre service public", "Personne de l'entourage", "Enquêté lui même"))
+table(d$fedorig, d$fed)
+    # - Non formalles
+d$nfeorig1<-cut(as.numeric(d$nfeorig1), c(0,1,2,3,4,5,6), labels=c("Sans objet", "Employeur·euse", "Service public de l'emploi", "Autre service public", "Personne de l'entourage", "Enquêté lui même"))
+d$nfeorig2<-cut(as.numeric(d$nfeorig2), c(0,1,2,3,4,5,6), labels=c("Sans objet", "Employeur·euse", "Service public de l'emploi", "Autre service public", "Personne de l'entourage", "Enquêté lui même"))
+d$nfeorig3<-cut(as.numeric(d$nfeorig3), c(0,1,2,3,4,5,6), labels=c("Sans objet", "Employeur·euse", "Service public de l'emploi", "Autre service public", "Personne de l'entourage", "Enquêté lui même"))
+table(d$nfeorig1, d$nfenum>0)
+table(d$nfeorig2, d$nfenum>0)
+table(d$nfeorig3, d$nfenum>0)
+
+  # Qui les paye ? 
+      # Formation formelle
+for(i in seq(which(colnames(d)=="fedpaidby_1"), which(colnames(d)=="fedpaidby_5"))){
+  print(paste("L'entité ",i-57,"a payé une partie de la formation dans ", mean(ifelse(d[[i]]==1,1,0)*100), "des cas"))
+}
+mean(ifelse(d$fedpaidfull==1,1,0))
+mean(d$fedpaidval)
+hist(as.numeric(d$fedpaidval, freq=T, col="#AA12B6"))
+      
+
+      # Formation informelle
+# À RAFFINER : IL Y A DES MESURES UN PEU DIFFÉRENTES À PRENDRE
+          # Première formation : 
+for(i in seq(which(colnames(d)=="nfepaidby1_1"), which(colnames(d)=="nfepaidby1_5"))){
+  print(paste("L'entité ",i-57,"a payé une partie de la formation dans ", mean(ifelse(d[[i]]==1,1,0)*100), "des cas"))
+}
+mean()
+          # Deuxième formation : 
+for(i in seq(which(colnames(d)="nfepaidby2_1"),which(colnames(d)=="nfepaidby2_5"))){
+  print(paste("L'entité ",i-57,"a payé une partie de la formation dans ", mean(ifelse(d[[i]]==1,1,0)*100), "des cas"))
+}
+
+  # Quel en est l'objectif ?
+recode1 <- function(x,a,b){
+  #Recoder les variables telles que NA=a et Non=b
+  x[x==a]<-NA
+  x[x==b]<-"Non"
+  x[x==1]<-"Oui"
+  print(x)
+}
+proptable <-function(x,y){
+  print(prop.table(table(x,y), 1))
+  print(prop.table(table(x,y), 2))
+  
+}
+
+
+for(i in seq(which(colnames(d)=="fedreason_01"),which(colnames(d)=='fedreason_09')) ){
+  print(paste("La raison", i-43, "a motivé la formation pour ",100*mean(ifelse(d[[i]]==1, 1,0), na.rm=TRUE), "% de l'échantillon"))
+}
+for(i in seq(which(colnames(d)=="fedreason_01"),which(colnames(d)=='fedreason_09')) ){
+  print(paste("La raison", i-43, "a motivé la formation pour ",100*mean(ifelse(d[[i]]==1, 1,0)&d$fed==1, na.rm=TRUE), "% de l'échantillon"))
+}
+for(i in seq(which(colnames(d)=="fedreason_01"),which(colnames(d)=='fedreason_09')) ){
+  print(paste("La raison", i-43, "a motivé la formation pour ",100*mean(ifelse(d[[i]]==1, 1,0)&d$nfenum>0, na.rm=TRUE), "% de l'échantillon"))
+}
+  # 1 : Être plus performant, améliorer les perspectives de carrières
+  # 2 : Réduction du risque de perte d'emploi
+  # 3 : Augmenter les possibilités de trouver / changer d'emploi
+  # 4 : Démarer une entreprise
+  # 5 : Obligation de participation
+  # 6 : Acquisition de compétences utiles dans la vie quotidienne
+  # 7 : Approfondissement de compétences/connaissances sur un sujet
+which(d$fedreason_05==1&d$fedoblig==2) # ÇA ÇA FAIT PLAISIR
+
+
+for(i in seq(which(colnames(d)=="fedreason_01"),which(colnames(d)=='fedreason_09')) ){
+  d[[i]]<-recode1(d[[i]],-2,2)
+  proptable(d[[i]],csp1)
+}
+
+          
+#### Formation pas finie
+unique(d$difempaut)
+d$difempaut
+which(colnames(d)=="difempech01")
+for(i in seq(which(colnames(d)=="difempech01"),which(colnames(d)=="difempech14") )){
+  d[[i]]<-recode1(d[[i]], -2,2)
+  }
+table(d$difempech01)
+
+
+# Qui n'a pas fini et pourquoi, inégalités des difficultés
+for(i in seq(which(colnames(d)=="difempech01"),which(colnames(d)=="difempech14") )){
+  print(table(d[[i]], d$sex))
+  print(paste("Difficulté n°", i-637))
+}
+for(i in seq(which(colnames(d)=="difempech01"),which(colnames(d)=="difempech14") )){
+  print(table(d[[i]], cspb))
+  print(paste("Difficulté n°", i-637))
+}
+for(i in seq(which(colnames(d)=="difempech01"),which(colnames(d)=="difempech14") )){
+  print(table(d[[i]], age1))
+  print(paste("Difficulté n°", i-637))
+}
+for(i in seq(which(colnames(d)=="difempech01"),which(colnames(d)=="difempech14") )){
+  print(table(d[[i]], zus))
+  print(paste("Difficulté n°", i-637))
+}
+for(i in seq(which(colnames(d)=="difempech01"),which(colnames(d)=="difempech14") )){
+  print(table(d[[i]], situa2))
+  print(paste("Difficulté n°",i-637))
+  }
+?print
+
+
+# Résultats de la formation-----
+source('/Users/simonjean/Desktop/École/ENS/D3/Deuxième année/MQSS/MQSS_fonctions.R')
+
+
+# Formation effectuée----
+for(i in seq(74,81)){
+  d[[i]]<-ifelse(d[[i]]==1, 1, 0)
+  print(paste("Le bénéfice",(colnames(d)[[i]]), "est observé chez ", mean(d[[i]] & d$fed==1, na.rm=TRUE)*100 ," % de l'échantillon des individus ayant effectué une formation formelle"))
+}
+
+(colnames(d)[[76]])
+
+?paste
+
+
+
+
+
+#### À FAIRE ----
+- FINIR DE TRIER LES DONNÉES PAR TYPE : DURÉE DE LA FORMATION
+- TRAITER LES VARIABLES DE DIFFICULTÉS ET DE RÉSULTATS
+- TRAVAILLER SUR LA CONNAISSANCE DU DROIT À LA FORMATION
+
+- CARACTÉRISER LES PLUS GROSSES INÉGALITÉS
+- CARACTÉRISER LES PLUS GROSSES DIFFICULTÉS
+- qui fournit la formation
+- Qui paye la formation
+- Diplôme
+- Qui est à l initiative de la formation
+
+
 
