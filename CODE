@@ -9,7 +9,7 @@ recode1 <- function(x,a,b){
   print(x)
 }
 
-#   /// MQSS \\\----
+#   /// MQSS \\\  ----
 library(xtable)
 options(xtable.floating = FALSE)
 options(xtable.timestamp = "")
@@ -21,7 +21,7 @@ d<-AES2012INDIVIDU
 str(d)
 dim(d)
 
-# Recodage CSP et Départements-----
+# Recodages multiples  -----
 which(colnames(d)=="csp")
 d$csp<-as.numeric(AES2012INDIVIDU[[729]])
 cspb<-as.numeric(d$csp)
@@ -217,6 +217,16 @@ d$dip<-as.numeric(d$dip)
 dip<-cut(d$dip, c(0, 10, 12, 21, 22, 30, 31, 32, 33, 41, 42, 43, 44, 50, 60, 70, 71), labels=c("Doctorat, Master 2, DEA, DESS", "École niveau licence et au delà", "Licence",
                                                                                                "Master 1, Maîtrise", "DEUG", "DUT, BTS, DEUST et équivalents", "Autre diplôme professionnel niveau  bac +2", "Diplôme paramédical et social niveau bac +2", "Bac général", "Bac techno",
                                                                                                "Bac pro", "Brevet de technicien, brevet professionnel", "CAP, BEP et équivalents", "BEPC, DNB, brevet des collèges", "Certificat d'études primaires", "Aucun diplôme"))
+dip1<-as.character(dip)
+dip1[dip1=="Doctorat, Master 2, DEA, DESS"|dip1== "École niveau licence et au delà"|dip1=="Licence"|dip1=="Master 1, Maîtrise"] <- 6
+dip1[dip1=="DUT, BTS, DEUST et équivalents"|dip1== "Autre diplôme professionnel niveau  bac +2"|dip1=="Diplôme paramédical et social niveau bac +2"|dip1=="DEUG"]<-5
+dip1[dip1=="Bac général"|dip1== "Bac techno"|dip1==
+       "Bac pro"]<-4
+dip1[dip1=="Brevet de technicien, brevet professionnel"|dip1== "CAP, BEP et équivalents"]<-3
+dip1[dip1=="CAP, BEP et équivalents"|dip1== "BEPC, DNB, brevet des collèges"]<-2
+dip1[dip1=="Certificat d'études primaires"]<-1
+dip1[dip1=="Aucun diplôme"]<-0
+dip1<-as.numeric(dip1)
 #Moins de modalités
 dipmere<-cut(as.numeric(d$dipmere), c(-1,0,1,2,3,4 ), labels=c("Pas de mère", "Aucun diplôme", "CEP, BEPC ou équivalent français ou étranger", "CAP, BEP, Baccalauréat, Capacité en droit ou DAEU", "Diplôme de niveau bac+2 ou plus"))
 which(dipmere!='Pas de mère' & d$dipmere==0)
@@ -329,10 +339,11 @@ quantile(d$age)
 hist(d$age)
 
 table(d$age1) 
-plot(table(d$age1), main="Répartition des classes d'âges", type="h")
-
+hist(table(d$age1), main="Répartition des classes d'âges")
+hist(as.numeric(d$age1))
 table(d$csp)
 median(d$csp)
+
 plot(table(d$csp))
 table(csp1)
 median(csp1)
@@ -381,7 +392,7 @@ mean(formation_totale)
 #mean(formation_totale3, na.rm=TRUE)
 
 
-    # Tests pour retrouver statistiques de l'INSEE-----
+    # Tests pour retrouver statistiques de l'INSEE  -----
 
 FED<-ifelse(d$fed==1, 1, 0)
 FINET<-as.numeric(ifelse(d$fifinan==2012, 1, 0))
@@ -391,7 +402,7 @@ which(FINET==1&FED==0)
 mean(FED)
 table(FED, d$age1)
 
-NFED<-ifelse(d$nfeloisir==1|d$nfeguidedjt==1|d$nfelesson==1|d$nfeworkshop==1|d$nbloisirg>0|d$nbloisirp,1,0)
+NFED<-ifelse(d$nfeloisir==1|d$nfeguidedjt==1|d$nfelesson==1|d$nfeworkshop==1|d$nbloisirg>0|d$nbloisirp>0,1,0)
 TOT<-ifelse(FED==1|NFED==1|FINET==1,1,0) #|d$nfenum>0| d$fednb>0
 mean(TOT, na.rm=TRUE)
 TOT[is.na(TOT)]<-0
@@ -464,7 +475,11 @@ quantile(d$fednb, na.rm=T, probs=c(0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 
 
 
         # Age et formation
-prop.table( table(formation_totale, d$age1), 1)
+prop.table( table(formation_totale, d$age1), 2)
+ggplot(x=d$age, y=formation_totale)
+ggplot(d, aes(x = d$age,y=formation_totale))+
+  geom_bar(stat="identity")
+
 RT<-prop.table( table(d$age1,formation_totale), 1)
 xtable(RT)          
   # Lecture : parmi les individus n'ayant pas effectué de formation, 37,9% ont plus de 55 ans
@@ -563,7 +578,99 @@ table(nfefield2)
 prop.table(table(nfefield2))
 
 
-# Droit à la formation-----
+        # Formation et type de revenus
+d$rfam<-as.numeric(d$rfam)
+d$rfam[d$rfam==2]<-0
+mean(d$rfam, na.rm=T)
+table(d$fed, d$rfam)
+table(formation_totale, d$rfam)
+
+
+d$rfin<-as.numeric(d$rfin)
+d$rfin[d$rfin==2]<-0
+mean(d$rfin, na.rm=T)
+table(d$fed, d$rfin)
+table(formation_totale, d$rfin)
+
+
+d$rimm<-as.numeric(d$rimm)
+d$rimm[d$rimm==2]<-0
+mean(d$rimm, na.rm=T)
+table(d$fed, d$rimm)
+table(formation_totale, d$rimm)
+
+
+d$rlog<- as.numeric(d$rlog)
+d$rlog[d$rlog==2]<-0
+mean(d$rlog, na.rm=T)
+table(d$fed, d$rlog)
+table(formation_totale, d$rlog)
+
+
+d$rmal<-as.numeric(d$rmal)
+d$rmal[d$rmal==2]<-0
+mean(d$rmal, na.rm=T)
+table(d$fed, d$rmal)
+table(formation_totale, d$rmal)
+
+
+d$rnsal<-as.numeric(d$rnsal)
+d$rnsal[d$rnsal==2]<-0
+mean(d$rnsal, na.rm=T)
+table(d$fed, d$rnsal)
+table(formation_totale, d$rnsal)
+
+d$rret<-as.numeric(d$rret)
+d$rret[d$rret==2]<-0
+mean(d$rret==2, na.rm=T)
+table(d$fed, d$rret)
+table(formation_totale, d$rret)
+
+
+d$rrmi<-as.numeric(d$rrmi)
+d$rrmi[d$rrmi==2]<-0
+mean(d$rrmi, na.rm=T)
+table(d$fed, d$rrmi)
+table(formation_totale, d$rrmi)
+
+d$rsal<-as.numeric(d$rsal)
+d$rsal[d$rsal==2]<-0
+mean(d$rsal, na.rm=TRUE)
+table(d$fed, d$rsal)
+table(formation_totale, d$rsal)
+
+
+d$rtra<-as.numeric(d$rtra)
+d$rtra[d$rtra==2]<-0
+mean(d$rtra, na.rm=T)
+table(d$fed, d$rtra)
+table(formation_totale, d$rtra)
+
+
+# Apprentissage informel & Formation informelle ----
+d$inf<-as.numeric(d$inf)
+d$infor<-as.numeric(d$infor)
+tapply(d$infor,d$age1, mean)
+d$infor[d$infor==4]<-0
+infor<-cut(d$infor, c(-1,0,1,2,3), labels=c("Aucun apprentissage informel", "1 apprentissage informel", "2 apprentissages informels", "Au moins 3 apprentissages informels"))
+AINF<- prop.table(table(d$age1, infor),1)
+AINF1 <- prop.table(table(cspb, infor),1)
+AINF2 <- prop.table(table(d$sex,infor),1)
+d$infor
+
+INF <- prop.table(table(d$age, NFED),1)
+INF1<-prop.table(table(cspb, NFED),1)
+INF2 <- prop.table(table(d$sex, NFED),1)
+
+xtable(AINF)
+xtable(AINF1)
+xtable(AINF2)
+
+xtable(INF)
+xtable(INF1)
+xtable(INF2)
+
+# Droit à la formation  -----
   ### Droit individuel à la formation
 d$dif<-recode1(d$dif,-2,2)
 d$dif<-AES2012INDIVIDU$dif
@@ -622,18 +729,37 @@ nbsalarie<-cut(d$salarieta,c(0,1,2,3,4,5,7), labels=c("1 à 10 salarié·e·s", 
 
 nbsalarie    
 d$salarieta
+
 #Logit de la formation : attention, la variable cspb est un ordre des CSP agrégées. Cela pose problème, parce que les résultats sont faussés
-reg1<-glm(d$fed ~ d$zus + d$sex + cspb + nbsalarie + d$age + dip + dippere + dipmere + ifelse(d$ictcomputer>0, 1,0))
 library(lmtest)
 library(sandwich)
-#coeftest(reg1, vcov=vcovHC(reg1, type="HC1"))
+
+reg1<-glm(d$fed ~ d$zus + d$sex + cspb + nbsalarie + d$age + dip + dippere + dipmere + ifelse(d$ictcomputer>0, 1,0))
 summary(reg1)
-# Maybe an other vector, more aggregated for dip. Could be fun to regress dip on education levels of the parents. 
+
+reg2<-glm(d$fed ~ d$zus + d$sex + d$age +  ifelse(d$ictcomputer>0,1,0)+ dip1)
+summary(reg2)
+
+#Essai LPM
+reg3<-lm(d$fed ~ d$zus + d$sex + d$age + ifelse(d$ictcomputer>0,1,0)+dip1)
+coeftest(reg3, vcov=vcovHC(reg1, type="HC1"))
+summary(reg3)
+
+reg4<-glm(formation_totale~ d$zus + d$sex + d$age + ifelse(d$ictcomputer>0,1,0)+dip1)
+summary(reg4)
+
+d$dif<-as.numeric(AES2012INDIVIDU[[674]])
+d$dif[d$dif==2]<-0
+reg5<-glm(d$dif~ d$zus+d$sex+d$age+ifelse(d$ictcomputer>0,1,0)+dip1)
+summary(reg5)
+# Odds ratio 
+exp(coef(reg5))/exp(1+coef(reg5))
 
 install.packages("stargazer")
 library(stargazer)
-stargazer(reg1)    
-
+stargazer(reg3)    
+stargazer(reg4)
+stargazer(reg5)
       
 # Pourquoi faire la formation ? ####
 
@@ -642,7 +768,7 @@ stargazer(reg1)
 
 d$fedorig<-cut(as.numeric(d$fedorig), c(0,1,2,3,4,5,6), labels=c("Sans objet", "Employeur·euse", "Service public de l'emploi", "Autre service public", "Personne de l'entourage", "Enquêté lui même"))
 table(d$fedorig, d$fed)
-    # - Non formalles
+    # - Non formelles
 d$nfeorig1<-cut(as.numeric(d$nfeorig1), c(0,1,2,3,4,5,6), labels=c("Sans objet", "Employeur·euse", "Service public de l'emploi", "Autre service public", "Personne de l'entourage", "Enquêté lui même"))
 d$nfeorig2<-cut(as.numeric(d$nfeorig2), c(0,1,2,3,4,5,6), labels=c("Sans objet", "Employeur·euse", "Service public de l'emploi", "Autre service public", "Personne de l'entourage", "Enquêté lui même"))
 d$nfeorig3<-cut(as.numeric(d$nfeorig3), c(0,1,2,3,4,5,6), labels=c("Sans objet", "Employeur·euse", "Service public de l'emploi", "Autre service public", "Personne de l'entourage", "Enquêté lui même"))
@@ -656,12 +782,16 @@ d$fedpaid[d$fedpaid==1]<-"Enquêté lui même"
 d$fedpaid[d$fedpaid==2]<-"Enquêté et quelqu'un de son entourage"
 d$fedpaid[d$fedpaid==3]<-"Quelqu'un de l'entourage"
 d$fedpaid[d$fedpaid==4]<-"N'a pas payé la formation"
-table(d$fedpaid)
+xtable(prop.table(table(d$fedpaid)))
 
 d$fedpaidfull[d$fedpaidfull==2]<-0
 d$fedpaidfull[d$fedpaidfull==-2]<-NA
 d$fedpaidfull<-as.numeric(d$fedpaidfull)
 mean(d$fedpaidfull, na.rm=T)
+
+which(d$fed==0&d$fedpaid=="")
+d$fedpaid
+
 for(i in seq(which(colnames(d)=="fedpaidaut1"), which(colnames(d)=="fedpaidaut5"))){
   d[[i]][d[[i]]==2]<-0
   print(paste("L'entité", i-530," a payé la formation dans ", mean(d[[i]])*100, " % des cas"))
@@ -742,13 +872,25 @@ proptable <-function(x,y){
 
 
 for(i in seq(which(colnames(d)=="fedreason_01"),which(colnames(d)=='fedreason_09')) ){
-  print(paste("La raison", i-43, "a motivé la formation pour ",100*mean(ifelse(d[[i]]==1, 1,0), na.rm=TRUE), "% de l'échantillon"))
+  d[[i]]<-as.numeric(d[[i]])
+  d[[i]][d[[i]]==2]<- 0
+  d[[i]][d[[i]]==-2]<-NA
+  print(paste("La raison", i-43, "a motivé la formation pour ",100*mean(d[[i]], na.rm=TRUE), "% de l'échantillon"))
 }
-for(i in seq(which(colnames(d)=="fedreason_01"),which(colnames(d)=='fedreason_09')) ){
-  print(paste("La raison", i-43, "a motivé la formation pour ",100*mean(ifelse(d[[i]]==1, 1,0)&d$fed==1, na.rm=TRUE), "% de l'échantillon"))
+
+for(i in seq(which(colnames(d)=="nfereason1_01"), which(colnames(d)=="nfereason1_09"))){
+  d[[i]]<-as.numeric(d[[i]])
+  d[[i]][d[[i]]==2]<- 0
+  d[[i]][d[[i]]==-2]<-NA
+  print(paste("La raison",i-which(colnames(d)=="nfereason1_01")+1, "a motivé la première formation informelle pour", 100*mean(d[[i]], na.rm=TRUE),"% de l'échantillon"))
 }
-for(i in seq(which(colnames(d)=="fedreason_01"),which(colnames(d)=='fedreason_09')) ){
-  print(paste("La raison", i-43, "a motivé la formation pour ",100*mean(ifelse(d[[i]]==1, 1,0)&d$nfenum>0, na.rm=TRUE), "% de l'échantillon"))
+
+for(i in seq(which(colnames(d)=="nfereason2_01"), which(colnames(d)=="nfereason2_09"))){
+  d[[i]]<-as.numeric(d[[i]])
+  d[[i]][d[[i]]==2]<- 0
+  d[[i]][d[[i]]==-2]<-NA
+  
+  print(paste("La raison", i-which(colnames(d)=="nfereason2_01")+1,"a motivé la deuxième formation informelle pour", 100*mean(d[[i]], na.rm=TRUE),"% de l'échantillon"))
 }
   # 1 : Être plus performant, améliorer les perspectives de carrières
   # 2 : Réduction du risque de perte d'emploi
@@ -763,7 +905,7 @@ which(d$fedreason_05==1&d$fedoblig==2) # ÇA ÇA FAIT PLAISIR
 
 for(i in seq(which(colnames(d)=="fedreason_01"),which(colnames(d)=='fedreason_09')) ){
   d[[i]]<-recode1(d[[i]],-2,2)
-  print(prop.table(table(d[[i]],csp1),1), prop.table(table(d[[i]], csp1), 2)-
+  print(prop.table(table(d[[i]],csp1),1), prop.table(table(d[[i]], csp1), 2))
 }
 
           
@@ -781,29 +923,38 @@ table(d$difempech01)
 
 # Qui n'a pas fini et pourquoi, inégalités des difficultés
 for(i in seq(which(colnames(d)=="difempech01"),which(colnames(d)=="difempech14") )){
-  print(table(d[[i]], d$sex))
+  d[[i]]<-as.numeric(AES2012INDIVIDU[[i]])
+  d[[i]][d[[i]]==-2]<-NA
+  d[[i]][d[[i]]==2]<-0
+  print(mean(ifelse(d[[i]]==1 & d$sex=="Femme", 1,0), na.rm=TRUE))
+  print(mean(ifelse(d[[i]]==1 & d$sex=="Homme", 1,0), na.rm=T))
   print(paste("Difficulté n°", i-637))
 }
 for(i in seq(which(colnames(d)=="difempech01"),which(colnames(d)=="difempech14") )){
+  d[[i]]<-as.numeric(AES2012INDIVIDU[[i]])
+  d[[i]][d[[i]]==-2]<-NA
+  d[[i]][d[[i]]==2]<-0
   print(table(d[[i]], cspb))
   print(paste("Difficulté n°", i-637))
 }
 for(i in seq(which(colnames(d)=="difempech01"),which(colnames(d)=="difempech14") )){
   print(table(d[[i]], age1))
+  print(paste("Difficulté n°", i-637))}
+for(i in seq(which(colnames(d)=="difempech01"),which(colnames(d)=="difempech14") )){
+  print(prop.table(table(d[[i]], d$zus),2))
   print(paste("Difficulté n°", i-637))
 }
 for(i in seq(which(colnames(d)=="difempech01"),which(colnames(d)=="difempech14") )){
-  print(table(d[[i]], zus))
-  print(paste("Difficulté n°", i-637))
-}
-for(i in seq(which(colnames(d)=="difempech01"),which(colnames(d)=="difempech14") )){
-  print(table(d[[i]], situa2))
+  print(prop.table(table(d[[i]], situa2)),2)
   print(paste("Difficulté n°",i-637))
-  }
-?print
+}
+for(i in seq(which(colnames(d)=="difempech01"), which(colnames(d)=="difempech14"))){
+  print(table(d[[i]]))
+}
+480/
 
 
-# Résultats de la formation-----
+# Résultats de la formation  -----
 source('/Users/simonjean/Desktop/École/ENS/D3/Deuxième année/MQSS/MQSS_fonctions.R')
 
   # Formation formelle
@@ -829,8 +980,10 @@ which(d$fed==0 & d$fedsat>0)
 
 # Motifs d'insatisfaction
 for(i in seq(which(colnames(d)=="fedunsatreason_1"),which(colnames(d)=="fedunsatreason_5"))){
+  d[[i]]<-as.numeric(d[[i]])
   d[[i]][d[[i]]==-2]<-NA
-  print(paste("La raison d'insatisfaction", colnames(d[[i]]), "est apparue dans ", mean(d[[i]])*100, "% des cas (cumulable)"))
+  d[[i]][d[[i]]==2]<-0
+  print(paste("La raison d'insatisfaction", i-which(colnames(d)=="fedunsatreason_1")+1, "est apparue dans ", mean(d[[i]], na.rm=T)*100, "% des cas (cumulable)"))
 }
 
 # Taux d'échec
@@ -840,6 +993,19 @@ d$fedobout<-as.numeric(d$fedobout)
 mean(d$fedobout, na.rm=T)
 
   # Formation informelle
+for(i in seq(which(colnames(d)=="nfeunsatreason1_1"),which(colnames(d)=="nfeunsatreason1_5"))){
+  d[[i]]<-as.numeric(d[[i]])
+  d[[i]][d[[i]]==-2]<-NA
+  d[[i]][d[[i]]==2]<-0
+  print(paste("La raison d'insatisfaction", i-which(colnames(d)=="nfeunsatreason1_1")+1, "est apparue dans ", mean(d[[i]], na.rm=T)*100, "% des cas (cumulable)"))
+}
+
+for(i in seq(which(colnames(d)=="nfeunsatreason2_1"),which(colnames(d)=="nfeunsatreason2_5"))){
+  d[[i]]<-as.numeric(d[[i]])
+  d[[i]][d[[i]]==-2]<-NA
+  d[[i]][d[[i]]==2]<-0
+  print(paste("La raison d'insatisfaction", i-which(colnames(d)=="nfeunsatreason2_1")+1, "est apparue dans ", mean(d[[i]], na.rm=T)*100, "% des cas (cumulable)"))
+}
 
 
 
@@ -863,6 +1029,23 @@ mean(d$fedobout, na.rm=T)
 - Fedfield
 - Diplôme des parents
 - ICTCOMPUTER
+
+
+# Graphiques // PROBLÈME
+ggplot(d, aes(x=d$age1, y = mean(formation_totale)))+
+  geom_bar(stat="identity")
+?ggplot
+plot(x = c("18-24 ans", "25-34 ans", "35-44 ans", "45-54 ans","55-64 ans"), y=moyenne)
+moyenne
+d$age1
+moyenne<-tapply(d$fed, d$age1,mean)
+plot(moyenne)
+moyenne
+
+ggplot(d, aes(x=d$age1, y=mean(d$fed)))+geom_bar(stat='identity')
+
+# J'ai essayé de faire un histogramme présentant les taux de participation selon : situa2, d$age1 en les empilant avec d$fed et ifelse(d$nfed>0,1,0)
+# mais je n'y arrive pas
 
 
 
