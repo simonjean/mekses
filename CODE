@@ -10,6 +10,8 @@ recode1 <- function(x,a,b){
 }
 
 #   /// MQSS \\\  ----
+# Code pour le projet MQSS 
+# S.JEAN/A.LION
 library(xtable)
 options(xtable.floating = FALSE)
 options(xtable.timestamp = "")
@@ -22,8 +24,9 @@ str(d)
 dim(d)
 
 # Recodages multiples  -----
-which(colnames(d)=="csp")
-d$csp<-as.numeric(AES2012INDIVIDU[[729]])
+
+
+d$csp<-as.numeric(AES2012INDIVIDU[[which(colnames(d)=="csp")]])
 cspb<-as.numeric(d$csp)
 cspb<-cut(cspb, c(00,11,21,31,42,52,62, 69), labels=c("Indéterminé","Agriculteurs·trices exploitant·e·s ","Artisan·e·s, commerçant·e·s, et chef·fe·s d'entreprise","Cadres et professions intellectuelles supérieures","Professions intermédiaires","Employé·e·s","Ouvrier·ère·s"))
 cspb[[7565]]
@@ -227,6 +230,7 @@ dip1[dip1=="CAP, BEP et équivalents"|dip1== "BEPC, DNB, brevet des collèges"]<
 dip1[dip1=="Certificat d'études primaires"]<-1
 dip1[dip1=="Aucun diplôme"]<-0
 dip1<-as.numeric(dip1)
+
 #Moins de modalités
 dipmere<-cut(as.numeric(d$dipmere), c(-1,0,1,2,3,4 ), labels=c("Pas de mère", "Aucun diplôme", "CEP, BEPC ou équivalent français ou étranger", "CAP, BEP, Baccalauréat, Capacité en droit ou DAEU", "Diplôme de niveau bac+2 ou plus"))
 which(dipmere!='Pas de mère' & d$dipmere==0)
@@ -250,7 +254,7 @@ fedfield[fedfield==440]<-"Sciences physiques"
 fedfield[fedfield==460]<-"Mathématiques et statistiques"
 fedfield[fedfield==481]<-"Sciences informatiques"
 fedfield[fedfield==482]<-"Utilisation de l'ordinateur"
-fedfield[fedfield==530]<-"Ingénierie et techniques apparentées"
+fedfield[fedfield==520]<-"Ingénierie et techniques apparentées"
 fedfield[fedfield==540]<-"Industries de transformation et de traitement"
 fedfield[fedfield==580]<-"Architecture et bâtiment"
 fedfield[fedfield==620]<-"Agriculture, sylviculture et halieutique"
@@ -281,7 +285,7 @@ nfefield1[nfefield1==440]<-"Sciences physiques"
 nfefield1[nfefield1==460]<-"Mathématiques et statistiques"
 nfefield1[nfefield1==481]<-"Sciences informatiques"
 nfefield1[nfefield1==482]<-"Utilisation de l'ordinateur"
-nfefield1[nfefield1==530]<-"Ingénierie et techniques apparentées"
+nfefield1[nfefield1==520]<-"Ingénierie et techniques apparentées"
 nfefield1[nfefield1==540]<-"Industries de transformation et de traitement"
 nfefield1[nfefield1==580]<-"Architecture et bâtiment"
 nfefield1[nfefield1==620]<-"Agriculture, sylviculture et halieutique"
@@ -312,7 +316,7 @@ nfefield2[nfefield2==440]<-"Sciences physiques"
 nfefield2[nfefield2==460]<-"Mathématiques et statistiques"
 nfefield2[nfefield2==481]<-"Sciences informatiques"
 nfefield2[nfefield2==482]<-"Utilisation de l'ordinateur"
-nfefield2[nfefield2==530]<-"Ingénierie et techniques apparentées"
+nfefield2[nfefield2==520]<-"Ingénierie et techniques apparentées"
 nfefield2[nfefield2==540]<-"Industries de transformation et de traitement"
 nfefield2[nfefield2==580]<-"Architecture et bâtiment"
 nfefield2[nfefield2==620]<-"Agriculture, sylviculture et halieutique"
@@ -372,7 +376,7 @@ prop.table(table(csp1))
               # Découpage de la formation professionelle non diplômante: 
        
           
-        #- Apprentissage informel : 
+                 #- Apprentissage informel : 
           d$inf
           d$infor
 
@@ -383,14 +387,6 @@ mean(d$fed)
 d$nfedur1<-as.numeric(d$nfedur1)
 formation_totale<-ifelse(d$fed==1|d$nfeact01_type>0|d$nfeact02_type>0, 1, 0)
 mean(formation_totale)
-
-#formation_totale2<-ifelse(d$fed==1|d$nfepurp4_10==1|d$inf<3, 1, 0)
-#mean(formation_totale2)
-
-#formation_totale3<-ifelse(d$fed==1|d$nfenum>0|d$nfedur1>0, 1, 0)
-#formation_totale3
-#mean(formation_totale3, na.rm=TRUE)
-
 
     # Tests pour retrouver statistiques de l'INSEE  -----
 
@@ -434,7 +430,10 @@ mean(TOT6)
 barplot(prop.table(table(d$age1, TOT6),1))
 prop.table(table(d$sex, TOT6), 1)
 prop.table(table(csp1, TOT6), 1)
-
+# Aucune de ces mesures ne sont satisfaisantes : les variables correctrices doivent être 
+# d$respweight
+# d$nfeactweight
+# Qui sont les pondérations de l'INSEE
 
 # Taux d'accès à la formation pour raisons professionelles ------
 fed_pro <-ifelse(d$fedreason_01==1|d$fedreason_02==1 |d$fedreason_03==1|d$fedreason_04==1|d$fedreason_05==1,1,0)
@@ -451,14 +450,14 @@ prop.table(table(d$sex, tot_pro), 1)
 prop.table(table(d$age1, nfe_pro), 1)
 prop.table(table(d$sex, nfe_pro), 1)
 
-#Tableau 2
+#Tableau 2 - ip1468
 prop.table(table(csp1, tot_pro), 1)
 prop.table(table(d$sex, tot_pro), 1)
 
 prop.table(table(d$jobstat, tot_pro),1)
 prop.table(table(d$zus, tot_pro), 1)
 
-#Tableau 3
+#Tableau 3 - ip468
 which(colnames(d)=="nfepaidaut1_1")
 which(colnames(d)=="nfepaidaut1_5")
 
@@ -470,7 +469,7 @@ for (i in seq(531,535)){
 prop.table(table(nfe_pro, d$nfepurp1==1))
 
 
-  # Déclinaison de l'accès à la formation ####
+    # Déclinaison de l'accès à la formation ####
 quantile(d$fednb, na.rm=T, probs=c(0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95,1))
 
 
@@ -482,14 +481,14 @@ ggplot(d, aes(x = d$age,y=formation_totale))+
 
 RT<-prop.table( table(d$age1,formation_totale), 1)
 xtable(RT)          
-  # Lecture : parmi les individus n'ayant pas effectué de formation, 37,9% ont plus de 55 ans
+                 # Lecture : parmi les individus n'ayant pas effectué de formation, 37,9% ont plus de 55 ans
 prop.table(table(formation_totale,d$age1), 2)
 
 prop.table(table(d$fed, d$age1),1)
 prop.table(table(d$fed, d$age1),2)
 RTRT<-prop.table(table(d$age1,d$fed),1)
 
-          # Lecture : parmi les 55-64 ans, 57,8% n'ont pas effectué de formation. 
+                 # Lecture : parmi les 55-64 ans, 57,8% n'ont pas effectué de formation. 
 
 
         # Sexe et formation
@@ -517,7 +516,6 @@ prop.table(tabke(formation_totale, csp1),2)
         # Zone Urbaine Sensible et formation
 prop.table(table(formation_totale, d$zus),1)
 prop.table(table(formation_totale, d$zus),2)
-
 
 
         # Statut d'emploi (salarié, non salarié) et formation
@@ -567,7 +565,6 @@ prop.table(table(nbsalarie, formation_totale), 2)
 
 table(fedfield)
 prop.table(table(fedfield))
-
 
         # Domaine des formations informelles
             # Première formation informelle tirée au sort
@@ -724,13 +721,15 @@ table(d$seeksource_1, d$seeksource_2)
 
 
 # Régressions ####
+
 d$salarieta<-as.numeric(d$salarieta)
 nbsalarie<-cut(d$salarieta,c(0,1,2,3,4,5,7), labels=c("1 à 10 salarié·e·s", "11 à 19 salarié·e·s", "20 à 49 salarié·e·s", "50 à 249 salarié·e·s", "250 salarié·e·s ou plus", "Plus de 10 mais NSP"))
 
 nbsalarie    
 d$salarieta
 
-#Logit de la formation : attention, la variable cspb est un ordre des CSP agrégées. Cela pose problème, parce que les résultats sont faussés
+#Logit de la formation : attention, la variable cspb est un ordre des CSP agrégées. Cela pose problème, l'échelle est complètement linéaire et
+# artificielle, mais il faut bien faire quelque chose pour retrouver de la variabilité. 
 library(lmtest)
 library(sandwich)
 
@@ -745,11 +744,14 @@ reg3<-lm(d$fed ~ d$zus + d$sex + d$age + ifelse(d$ictcomputer>0,1,0)+dip1)
 coeftest(reg3, vcov=vcovHC(reg1, type="HC1"))
 summary(reg3)
 
+# Logit : formation totale
 reg4<-glm(formation_totale~ d$zus + d$sex + d$age + ifelse(d$ictcomputer>0,1,0)+dip1)
 summary(reg4)
 
 d$dif<-as.numeric(AES2012INDIVIDU[[674]])
 d$dif[d$dif==2]<-0
+
+# Logit : droit individuel à la formation
 reg5<-glm(d$dif~ d$zus+d$sex+d$age+ifelse(d$ictcomputer>0,1,0)+dip1)
 summary(reg5)
 # Odds ratio 
@@ -763,12 +765,12 @@ stargazer(reg5)
       
 # Pourquoi faire la formation ? ####
 
-#   Qui est à l'initiative des formations: 
-    # - Formelles 
+    #   Qui est à l'initiative des formations: 
+        # - Formelles 
 
 d$fedorig<-cut(as.numeric(d$fedorig), c(0,1,2,3,4,5,6), labels=c("Sans objet", "Employeur·euse", "Service public de l'emploi", "Autre service public", "Personne de l'entourage", "Enquêté lui même"))
 table(d$fedorig, d$fed)
-    # - Non formelles
+       # - Non formelles
 d$nfeorig1<-cut(as.numeric(d$nfeorig1), c(0,1,2,3,4,5,6), labels=c("Sans objet", "Employeur·euse", "Service public de l'emploi", "Autre service public", "Personne de l'entourage", "Enquêté lui même"))
 d$nfeorig2<-cut(as.numeric(d$nfeorig2), c(0,1,2,3,4,5,6), labels=c("Sans objet", "Employeur·euse", "Service public de l'emploi", "Autre service public", "Personne de l'entourage", "Enquêté lui même"))
 d$nfeorig3<-cut(as.numeric(d$nfeorig3), c(0,1,2,3,4,5,6), labels=c("Sans objet", "Employeur·euse", "Service public de l'emploi", "Autre service public", "Personne de l'entourage", "Enquêté lui même"))
@@ -776,7 +778,7 @@ table(d$nfeorig1, d$nfenum>0)
 table(d$nfeorig2, d$nfenum>0)
 table(d$nfeorig3, d$nfenum>0)
 
-  # Qui les paye ? 
+    # Qui les paye ? 
       # Formation formelle
 d$fedpaid[d$fedpaid==1]<-"Enquêté lui même"
 d$fedpaid[d$fedpaid==2]<-"Enquêté et quelqu'un de son entourage"
@@ -856,7 +858,7 @@ for(i in seq(which(colnames(d)="nfepaidby2_1"),which(colnames(d)=="nfepaidby2_5"
 }
 
 
-  # Quel en est l'objectif ?
+    # Quel en est l'objectif ?
 recode1 <- function(x,a,b){
   #Recoder les variables telles que NA=a et Non=b
   x[x==a]<-NA
@@ -921,7 +923,7 @@ for(i in seq(which(colnames(d)=="difempech01"),which(colnames(d)=="difempech14")
 table(d$difempech01)
 
 
-# Qui n'a pas fini et pourquoi, inégalités des difficultés
+  # Qui n'a pas fini et pourquoi, inégalités des difficultés
 for(i in seq(which(colnames(d)=="difempech01"),which(colnames(d)=="difempech14") )){
   d[[i]]<-as.numeric(AES2012INDIVIDU[[i]])
   d[[i]][d[[i]]==-2]<-NA
@@ -1008,30 +1010,7 @@ for(i in seq(which(colnames(d)=="nfeunsatreason2_1"),which(colnames(d)=="nfeunsa
 }
 
 
-
-#### À FAIRE ----
-- FINIR DE TRIER LES DONNÉES PAR TYPE : DURÉE DE LA FORMATION
-- TRAITER LES VARIABLES DE DIFFICULTÉS ET DE RÉSULTATS
-- TRAVAILLER SUR LA CONNAISSANCE DU DROIT À LA FORMATION
-
-- CARACTÉRISER LES PLUS GROSSES INÉGALITÉS
-- CARACTÉRISER LES PLUS GROSSES DIFFICULTÉS
-- qui fournit la formation
-- Qui paye la formation
-- Diplôme
-- Qui est à l initiative de la formation
-
-- Grand tableau tout joli
-- Taux d echec
-- formation par type de revenu
-
-
-- Fedfield
-- Diplôme des parents
-- ICTCOMPUTER
-
-
-# Graphiques // PROBLÈME
+# Graphiques // PROBLÈME ----
 ggplot(d, aes(x=d$age1, y = mean(formation_totale)))+
   geom_bar(stat="identity")
 ?ggplot
@@ -1046,6 +1025,14 @@ ggplot(d, aes(x=d$age1, y=mean(d$fed)))+geom_bar(stat='identity')
 
 # J'ai essayé de faire un histogramme présentant les taux de participation selon : situa2, d$age1 en les empilant avec d$fed et ifelse(d$nfed>0,1,0)
 # mais je n'y arrive pas
+
+# Graphique CSP agrégées et formation formelle
+tapply(d$fed, cspb, mean)
+FG<-c(1.84, 3.47, 6.97, 6.54, 6.44, 4.04)
+names(FG)<-c("Agriculteurs·trices exploitant·e·s ","Artisan·e·s, commerçant·e·s, et chef·fe·s d'entreprise ","Cadres et professions intellectuelles supérieures"," Professions intermédiaires","Employé·e·s ","Ouvrier·ère·s ")
+plot(FG, type="h", col=rgb(0,119,139, maxColorValue = 255), xlab="CSP agrégée", ylab="% de participation à la formation formelle", main="Accès à la formation formelle et CSP", ylim=range(1:10))
+
+
 
 
 
