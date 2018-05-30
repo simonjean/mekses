@@ -1037,6 +1037,13 @@ tapply(tot_pro, cspb, mean)
 FG2<-c(32.2, 40.6, 66.4, 57.8, 41.3, 32.6)
 plot(FG2, type="h", col=rgb(0,119,139, maxColorValue = 255), xlab="CSP agrégée", ylab="% de participation à la formation pour raisons professionnelles", main="Formation pour raisons professionnelles et CSP", ylim=range(1:75))
 
+# Carte
+tot_pro1<-tot_pro
+tot_pro1[tot_pro1==0]<-NA
+TY<-table(d$dep, tot_pro1)
+TY
+TY1<-table(d$dep, tot_pro)
+TY1
 
 
 
