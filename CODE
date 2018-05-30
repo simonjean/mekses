@@ -1032,6 +1032,10 @@ FG<-c(1.84, 3.47, 6.97, 6.54, 6.44, 4.04)
 names(FG)<-c("Agriculteurs·trices exploitant·e·s ","Artisan·e·s, commerçant·e·s, et chef·fe·s d'entreprise ","Cadres et professions intellectuelles supérieures"," Professions intermédiaires","Employé·e·s ","Ouvrier·ère·s ")
 plot(FG, type="h", col=rgb(0,119,139, maxColorValue = 255), xlab="CSP agrégée", ylab="% de participation à la formation formelle", main="Accès à la formation formelle et CSP", ylim=range(1:10))
 
+tapply(tot_pro, cspb, mean)
+FG2<-c(32.2, 40.6, 66.4, 57.8, 41.3, 32.6)
+plot(FG2, type="h", col=rgb(0,119,139, maxColorValue = 255), xlab="CSP agrégée", ylab="% de participation à la formation pour raisons professionnelles", main="Formation pour raisons professionnelles et CSP", ylim=range(1:75))
+
 
 
 
